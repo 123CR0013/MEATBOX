@@ -14,18 +14,25 @@
 // 敵情報
 struct Enemy
 {
-	int x, y;		// 座標（チップ単位）
+	// この配列要素を使用しているか
+	int use;
+	// 敵の種類
+	int type;
+
+	// 敵のマップチップ座標
+	int x, y;
 
 	//enemyRoute構造体配列の番号
 	//enemyRoute[routeNum][moveCnt]
-	int routeNum;	//
-	int moveCnt;	//
+	int routeNum;
+	int moveCnt;
 
-	int moveOrder;	//Routeをどう進むか 1.正順 -1.逆順
-	int use;		//この配列要素を使用しているか
-	int type;		//敵の種類
+	//Routeをどう進むか 1.正順 -1.逆順
+	int moveOrder;
 
+	// アニメーションカウント
 	int animCnt;
+	// アニメーション速度
 	int animSpeed;
 };
 
@@ -34,9 +41,12 @@ struct EnemyRoute {
 	int x, y;
 };
 
-//enemy_tomatoが何体使われたかをカウント
-//このカウントをenemy[i].routeNumに持たせる
+// enemy_tomatoが何体使われたかをカウント
+// このカウントをenemy[i].routeNumに持たせる（EnemyとEnemyRouteの対応付け）
+// ステージのリトライにも使う
 extern int enemyTomatoCnt;
 
+// 敵の初期化処理
 void EnemyInit(Enemy[], EnemyRoute[][ROUTE_MAX]);
+// 敵の移動処理
 void EnemyMove(Enemy[], EnemyRoute[][ROUTE_MAX]);

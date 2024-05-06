@@ -40,8 +40,9 @@ Effect effect[EFFECT_MAX];
 
 Enemy enemy[ENEMY_MAX];
 
-//このルートを順番に通る
-//移動先に障害物があったら折り返して、逆順に最初の地点まで行く
+// 敵の巡回ルート
+// 移動先に障害物があったら折り返して、逆順に最初の地点まで行く
+// -1、または、最初の要素か最後の要素に到達した場合に折り返す
 EnemyRoute enemyRoute[ENEMY_TOMATO_MAX][ROUTE_MAX]{
 	//stage 0
 	//stage 1
