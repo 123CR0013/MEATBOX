@@ -28,6 +28,9 @@ void SceneInit() {
 	animCnt = 0;
 }
 
+// シーンの切り替え処理
+// 引数：scene 描画するシーンの番号
+// 0:タイトル画面 1:ゲーム画面 2:ゲームオーバー画面 3:ゲームクリア画面
 void SceneManage(int scene) {
 	switch (scene)
 	{
