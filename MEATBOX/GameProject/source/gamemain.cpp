@@ -204,23 +204,29 @@ void FrameInput() {
 	gTrg = (gKey ^ keyold) & gKey;
 }
 
-//箱をランダムな位置に出現させる
-//左上・右下を指定し、その矩形の中を出現範囲とする
+
+// 指定した範囲内にミートボックスをランダムに追加する処理
+// 左上・右下を指定し、その矩形の中を出現範囲とする
+// プレイヤーの座標にはミートボックスを出現させない
 void AddBox(int left, int top, int right, int bottom, int playerX, int playerY) {
 
 	int rx, ry;
 	while (1) {
+		// ランダムに座標を決める
 		rx = (rand() % (right - left + 1)) + left;
 		ry = (rand() % (bottom - top + 1)) + top;
 
+		// ランダムに決定した座標に既にミートボックスがない、かつ、プレイヤーの座標でない場合にループを抜ける
 		if (box[ry * MAP_W + rx] != 1) {
 			if (playerX != rx || playerY != ry) {
 				break;
 			}
 		}
 	}
+	// box[] にミートボックスを追加
 	box[ry * MAP_W + rx] = 1;
 
+	// エフェクトをセット
 	SetEffect(effect, rx, ry, EFFECT_TYPE_IMPACT);
 }
 
