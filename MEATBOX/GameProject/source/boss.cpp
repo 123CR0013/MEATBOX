@@ -3,12 +3,11 @@
 #include "map.h"
 #include "resource.h"
 
+// ボスの初期化処理
 void BossInit() {
-	//
-	// ボス
-	//
+	// ボス画像の読み込み
 
-	// 一度フィルターをかけると戻せないので，この関数でbossステージ開始時に毎回読み込みをする
+	// DxLibの仕様上、一度画像にフィルターをかけると戻せないので，この関数でbossステージ開始時に毎回読み込みをする
 
 	for (int i = 0; i < 16; i++) {
 		DeleteGraph(cgBoss[i]);
@@ -32,7 +31,7 @@ void BossInit() {
 	cgBoss[15] = LoadGraph("res/enemy/boss/boss16.png");
 }
 
-//触手の初期化（tentacle構造体配列）
+// 触手構造体の初期化
 void TentacleInit(Tentacle tentacle[]) {
 	int x, y;
 	x = 10;
@@ -58,7 +57,7 @@ void TentacleInit(Tentacle tentacle[]) {
 	}
 }
 
-//攻撃予兆範囲の初期化（AOE構造体配列）
+// AOE構造体（攻撃予兆範囲）の初期化
 void AOEInit(AOE aoe[]) {
 	for (int i = 0; i < 8; i++) {
 		aoe[i].use = 0;
@@ -68,21 +67,23 @@ void AOEInit(AOE aoe[]) {
 	}
 }
 
-//触手を攻撃待機状態にする
+// 触手を攻撃待機状態にする
 void SetTentacleReady(Tentacle tentacle[], AOE aoe[]) {
-	//AOE構造体の初期化
+	// AOE構造体の初期化
 	AOEInit(aoe);
 
-	//現在攻撃中の触手の状態を初期化（非攻撃状態に）
+	// 現在攻撃中の触手の状態を非攻撃状態にする
 	for (int i = 0; i < TENTACLE_MAX; i++) {
 		if (tentacle[i].isRemain == 1) {
 			tentacle[i].isRemain = 0;
+			// enemyMapから攻撃範囲内の敵がいる判定を消す
 			for (int j = 1; j <= tentacle[i].range; j++) {
 				enemyMap[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 0;
 			}
 		}
 	}
 
+	// 残っている触手があるかどうかを判定する
 	int remainTentacle = 0;
 	for (int i = 0; i < TENTACLE_MAX; i++) {
 		if (tentacle[i].use == 1) {
@@ -90,8 +91,8 @@ void SetTentacleReady(Tentacle tentacle[], AOE aoe[]) {
 		}
 	}
 
+	// 残っている触手がある場合
 	if (remainTentacle == 1) {
-
 		//次に攻撃する触手をランダムに決定
 		int r;
 		while (1) { //すでに倒された触手が選ばれないようにする
@@ -103,10 +104,10 @@ void SetTentacleReady(Tentacle tentacle[], AOE aoe[]) {
 	}
 }
 
+// AOEを設定する
 //ボスの攻撃範囲を数ターン前に表示する
 void SetBossAOE(Tentacle tentacle[], AOE aoe[]) {
 	for (int i = 0; i < TENTACLE_MAX; i++) {
-
 		//攻撃待機状態の触手の攻撃範囲にAOEをセットする
 		if (tentacle[i].isReady == 1) {
 			for (int j = 1; j <= tentacle[i].range; j++) {
@@ -116,44 +117,43 @@ void SetBossAOE(Tentacle tentacle[], AOE aoe[]) {
 			}
 			break;
 		}
-
 	}
 }
 
-//触手の攻撃
+// ボスの攻撃処理
 void BossAttack(Tentacle tentacle[]) {
 	for (int i = 0; i < TENTACLE_MAX; i++) {
+		// 攻撃待機状態の触手がある場合
 		if (tentacle[i].isReady == 1) {
-
-			//攻撃処理
+			// 攻撃処理
 			for (int j = 1; j <= tentacle[i].range; j++) {
-				//攻撃範囲内の箱を壊す
+				// 攻撃範囲内の箱を壊す
 				box[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 0;
-				//攻撃範囲内に敵がいる判定をつける
+				// 攻撃範囲内に敵がいる判定をつける
 				enemyMap[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 9;
 			}
 
-			//攻撃待機状態の解除
+			// 攻撃待機状態の解除
 			tentacle[i].isReady = 0;
-			//攻撃状態の設定
+			// 攻撃状態の設定
 			tentacle[i].isRemain = 1;
 
+			// SEの再生
 			PlaySoundMem(sound[4], DX_PLAYTYPE_BACK);
 			break;
 		}
 	}
 }
 
-//触手を消す（プレイヤーから触手への攻撃）
+// 触手を消す処理（プレイヤーから触手への攻撃）
 void DeleteTentacle(Tentacle tentacle[]) {
 	for (int i = 0; i < TENTACLE_MAX; i++) {
-
-		//触手をつぶす		
+		// ステージ上に残っている触手
 		if (tentacle[i].isRemain == 1) {
-			//攻撃状態の触手を消す
+			// 要素を使用していない状態にする
 			tentacle[i].use = 0;
 
-			//攻撃範囲内の敵がいる判定を消す
+			// 攻撃範囲内の敵がいる判定を消す
 			for (int j = 1; j <= tentacle[i].range; j++) {
 				enemyMap[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 0;
 			}
