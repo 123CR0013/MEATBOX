@@ -132,6 +132,8 @@ void StageInit(int stageNo) {
 
 	player.stepCnt = 5;
 
+	// ステージごとの初期化処理
+	// 残り歩数の設定
 	switch(gStageNo) {
 	case 0:
 		break;
@@ -159,11 +161,10 @@ void StageInit(int stageNo) {
 	case 8:
 		player.stepCnt = 99;
 		break;
-	case 9:
-		player.stepCnt = 30;
+	case 9: // ボスステージ
+		player.stepCnt = 1;
 
-		BossInit();
-
+		// 現在のBGMを停止し、ボスステージのBGMを再生
 		if (bgmHandle != bgm[5]) {
 			StopSoundMem(bgmHandle);
 			bgmHandle = bgm[5];
@@ -174,9 +175,14 @@ void StageInit(int stageNo) {
 
 	//ボスステージの場合
 	if (gStageNo == BOSS_STAGE) {
+		// ボスの初期化
+		BossInit();
+
+		// ミートボックスをランダムに配置
 		for (int i = 0; i < 4; i++) {
 			AddBox(12, 9, 17, 10, player.x, player.y);
-		}		
+		}
+		// 触手構造体の初期化
 		TentacleInit(tentacle);
 		tentacleMoveCnt = 0;
 	}
@@ -233,11 +239,12 @@ void AddBox(int left, int top, int right, int bottom, int playerX, int playerY) 
 
 int alphaFrag;
 
+// 矢印エフェクトをセットする
 void SetArrowEffect() {
 	if (moveCnt == 1) {	
 		alphaFrag = 0;
 
-		//一度現在表示されている矢印を消す
+		// 現在表示されている矢印を消す
 		for (int i = 0; i < EFFECT_MAX; i++) {
 			if (effect[i].use == 1) {
 				if (effect[i].type == EFFECT_TYPE_ARROW_YELLOW || effect[i].type == EFFECT_TYPE_ARROW_RED) {
@@ -249,79 +256,73 @@ void SetArrowEffect() {
 		//次の移動先の座標を取得して矢印をセットする
 		for (int i = 0; i < ENEMY_MAX; i++) {
 			if (enemy[i].use == 1 && enemy[i].type == ENEMY_TYPE_TOMATO) {
-				//移送先の情報を仮で入れる
+				// 移送先の情報を仮で入れる
 				int x, y, n, order;
 				n = enemy[i].moveCnt + enemy[i].moveOrder;
 				x = enemyRoute[enemy[i].routeNum][n].x;
 				y = enemyRoute[enemy[i].routeNum][n].y;
 				order = enemy[i].moveOrder;
 
-				//enemyRouteの終端にいたら、折り返し先の座標を取得する
-				if (x == -1 || n == -1) { 				
+				// enemyRouteの終端にいたら、折り返し先の座標を取得する
+				if (x == -1 || n == -1) {
 					order *= -1;
 					n = enemy[i].moveCnt + order;
 					x = enemyRoute[enemy[i].routeNum][n].x;
-					y = enemyRoute[enemy[i].routeNum][n].y;			
+					y = enemyRoute[enemy[i].routeNum][n].y;	
 				
 				}
 
 				// 敵が移動できない場合は矢印を半透明にする
 				if (map[y * MAP_W + x] == 1 || boxMap[y * MAP_W + x] == 1) { 
 					alphaFrag = 1;
-					//break; 
-				
+					//break;
 				}
 
-				//敵が動くまで2ターンあったら黄色い矢印をセットする
+				// 敵が動くまで2ターンあったら黄色い矢印をセットする
 				if (player.moveCnt == 0) {
-					//黄色
 					if (enemy[i].x > x) {
-						//左
+						// 左
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_YELLOW, ARROW_LEFT);
 					}
 					else if (enemy[i].x < x) {
-						//右
+						// 右
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_YELLOW, ARROW_RIGHT);
 					}
 					else if (enemy[i].y > y) {
-						//上
+						// 上
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_YELLOW, ARROW_UP);
 					}
 					else if (enemy[i].y < y) {
-						//上
+						// 下
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_YELLOW, ARROW_DOWN);
 					}
 				}
-				//敵が次のターンに移動するなら赤い矢印をセットする
+				// 敵が次のターンに移動するなら赤い矢印をセットする
 				else if (player.moveCnt == 1) {
-					//赤
 					if (enemy[i].x > x) {
-						//左
+						// 左
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_RED, ARROW_LEFT);
 					}
 					else if (enemy[i].x < x) {
-						//右
+						// 右
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_RED, ARROW_RIGHT);
 					}
 					else if (enemy[i].y > y) {
-						//上
+						// 上
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_RED, ARROW_UP);
 					}
 					else if (enemy[i].y < y) {
-						//上
+						// 下
 						SetEffect(effect, x, y, EFFECT_TYPE_ARROW_RED, ARROW_DOWN);
 					}
 				}
-
 			}
 		}
-
 		moveCnt = 0;
 	}
 }
 
-
-
+// プレイヤーの移動処理
 void PlayerMove() {
 	int IsMove = 0;
 	// 移動前の場所を取っておく
@@ -332,19 +333,21 @@ void PlayerMove() {
 	int move_x = 0;
 	int move_y = 0;
 	
-	//移動キー
+	// 移動入力がある場合
 	if (gTrg & (PAD_INPUT_LEFT + PAD_INPUT_RIGHT + PAD_INPUT_UP + PAD_INPUT_DOWN)) { //すべて加算した後に（2進数で表現した時に繰り上げがない）gTrgと排他的論理和
+		// SEを再生
 		PlaySoundMem(sound[0], DX_PLAYTYPE_BACK);
 
+		// カウンタの処理
 		if (gStageNo != BOSS_STAGE) {
 			player.stepCnt--;
 		}
 		else {
 			tentacleMoveCnt++;
-		}		
+		}
 	}
 			
-	// キー入力を判定して、主人公を移動させる
+	// キー入力を判定して、プレイヤーキャラクターを移動させる
 	if(gTrg & PAD_INPUT_LEFT) {
 		player.x--;
 		move_x = -1;
@@ -388,8 +391,7 @@ void PlayerMove() {
 	}
 
 	//プレイヤーと敵がぶつかったらゲームオーバー
-	if (enemyMap[player.y * MAP_W + player.x] != 0) {
-		
+	if (enemyMap[player.y * MAP_W + player.x] != 0) {	
 		gScene = SCENE_GAMEOVER;
 	}
 
@@ -404,7 +406,7 @@ void PlayerMove() {
 		int next_x = player.x + move_x;
 		int next_y = player.y + move_y;
 
-		// その先に、壁があるかを調べる
+		// 箱を押した先に、壁があるかを調べる
 		if (map[next_y * MAP_W + next_x] >= 50 || map[next_y * MAP_W + next_x] == -1)
 		{
 			// 壁があるので押せない
@@ -412,7 +414,7 @@ void PlayerMove() {
 			IsMove = 0;
 		}
 
-		// その先に、箱があるかを調べる
+		// 箱を押した先に、箱があるかを調べる
 		if (boxMap[next_y * MAP_W + next_x] == 1)
 		{
 			// 箱があるので押せない
@@ -420,14 +422,22 @@ void PlayerMove() {
 			IsMove = 0;
 		}
 
+		// 押しつぶしできるかどうかの判定
 		int crush_ok = 0;
-
-		//押しつぶし
+		// 箱を押した先に、敵がいるかを調べる
 		if (enemyMap[next_y * MAP_W + next_x] != 0) {
-			if (map[(next_y + move_y) * MAP_W + (next_x + move_x)] >= 50 || boxMap[(next_y + move_y) * MAP_W + (next_x + move_x)] == 1 || map[(next_y + move_y) * MAP_W + (next_x + move_x)] == -1) {
+
+			// さらに先に、敵を押し潰すため障害物があるかを調べる（プレイヤーが押した箱と障害物で敵を挟んだ場合に押しつぶせる）
+			// 以下の3つの条件のいずれかに当てはまる場合、押し潰せる
+			if (map[(next_y + move_y) * MAP_W + (next_x + move_x)] >= 50 || // 壁
+				map[(next_y + move_y) * MAP_W + (next_x + move_x)] == -1 || // 進入禁止エリア
+				boxMap[(next_y + move_y) * MAP_W + (next_x + move_x)] == 1 // 箱
+				) 
+			{
 				push_ok = 1;
 				crush_ok = 1;
 			}
+			// それ条件に当てはまらない場合（障害物がない場合）、押し潰せない
 			else {
 				push_ok = 0;
 				IsMove = 0;
@@ -448,32 +458,42 @@ void PlayerMove() {
 			SetEffect(effect, next_x, next_y, EFFECT_TYPE_IMPACT);
 			PlaySoundMem(sound[2], DX_PLAYTYPE_BACK);
 
+			// 敵を押し潰せる場合
 			if (crush_ok == 1) {
+				// ボスステージ以外なら
 				if (gStageNo != BOSS_STAGE) {
+					// 敵の判定を消す
 					enemyMap[next_y * MAP_W + next_x] = 0;
 
+					// 押しつぶす敵をEnemy構造体配列から探す
 					for (int i = 0; i < ENEMY_MAX; i++) {
 						if (next_x == enemy[i].x && next_y == enemy[i].y) {
+							// 敵を消す
 							enemy[i].use = 0;
+
+							// SEを再生
 							PlaySoundMem(sound[1], DX_PLAYTYPE_BACK);
 
+							// エフェクトをセット
 							SetEffect(effect, next_x - (480 / CHIP_W), next_y - (270 / CHIP_H), EFFECT_TYPE_EXPLOSION_EYE_1);
 							SetEffect(effect, 480 / CHIP_W, 580 / CHIP_H, EFFECT_TYPE_EXPLOSION_EYE_2);
-
 							SetEffect(effect, next_x - (480 / CHIP_W), next_y - (270 / CHIP_H), EFFECT_TYPE_EXPLOSION_MEAT);
 							SetEffect(effect, next_x - (480 / CHIP_W), next_y - (270 / CHIP_H), EFFECT_TYPE_EXPLOSION_BLOOD);
 						}
 					}
 				}
+				// ボスステージ
 				else {
+					// SEを再生
 					PlaySoundMem(sound[1], DX_PLAYTYPE_BACK);
 
+					// エフェクトをセット
 					SetEffect(effect, next_x - (480 / CHIP_W), next_y - (270 / CHIP_H), EFFECT_TYPE_EXPLOSION_MEAT);
 					SetEffect(effect, next_x - (480 / CHIP_W), next_y - (270 / CHIP_H), EFFECT_TYPE_EXPLOSION_BLOOD);
+					
+					// 現在攻撃状態になっている触手を消す
 					DeleteTentacle(tentacle);
 				}
-				
-				
 			}
 		}
 		else
@@ -483,6 +503,8 @@ void PlayerMove() {
 			player.y = old_y;
 		}
 	}
+
+	// 移動した場合、エフェクトをセット
 	if (IsMove == 1) {
 		SetEffect(effect, old_x, old_y, 0);
 	}
@@ -499,7 +521,6 @@ void FrameProcess() {
 	}
 	boxAnimCnt++;
 	boss.animCnt++;
-	
 	
 	// 敵をすべて倒したか
 	int all_get = 1;	
@@ -524,29 +545,34 @@ void FrameProcess() {
 		}
 	}
 
-		
-
-
 	player.animCnt++;
+
+	// エフェクトのアニメーション処理
 	EffectProcess(effect);
 
 	// 敵が残っていたら、ゲームの処理をする
 	if (all_get == 0)
 	{
+		// プレイヤーの移動処理
 		PlayerMove();
 		
+		// ボスステージの場合
 		if (gStageNo == BOSS_STAGE) {
 			if (player.stepCnt == 0) { gScene = SCENE_GAMECLEAR; return; }
+
+			// ボスの処理
+			// 9ターンを1サイクルとする
 			switch (tentacleMoveCnt % 9)
 			{
-			case 0:
+			case 0: // 0ターン目
+				// 触手を攻撃待機状態にする
 				SetTentacleReady(tentacle, aoe);
 
 				int x, y, n;
 				n = 0;
 				for (y = 0; y < MAP_H; y++) {
 					for (x = 0; x < MAP_W; x++) {
-						// box[] から、チップ番号を取り出す
+						// box[] から、ステージ上にある箱の数を数える
 						int chip_no = boxMap[y * MAP_W + x];
 						if (chip_no != 0)
 						{
@@ -554,6 +580,7 @@ void FrameProcess() {
 						}
 					}
 				}
+				// 箱の数が4個未満なら、箱を追加する
 				while (n < 4) {
 					AddBox(12, 9, 17, 10, player.x, player.y);
 					n++;
@@ -561,19 +588,22 @@ void FrameProcess() {
 
 				tentacleMoveCnt++;
 				break;
-			case 3:
+
+			case 3: // 3ターン目
+				// AOEをセットする
 				SetBossAOE(tentacle, aoe);
 				break;
-			case 5:
+			case 5: // 5ターン目
+				// 触手を攻撃状態にする
 				BossAttack(tentacle);
+				// AOEを消す
 				AOEInit(aoe);
 				tentacleMoveCnt++;
 				break;
-
 			}
 		}
 		
-
+		// プレイヤーの移動に応じて、敵の処理を行う
 		if (player.moveCnt == 0) {
 			SetArrowEffect();
 		}else if (player.moveCnt == 1) {
@@ -582,7 +612,6 @@ void FrameProcess() {
 			EnemyMove(enemy, enemyRoute);
 			player.moveCnt = 0;
 		}
-
 		
 		// ステージデータリセット（やり直し）
 		if (gTrg & PAD_INPUT_1) {	// [z]
@@ -594,14 +623,6 @@ void FrameProcess() {
 			StageInit(gStageNo);
 			EnemyInit(enemy, enemyRoute);
 		}
-		
-
-
-
-
-
-
-
 
 		// 開発用。次のステージへ
 		if (gTrg & PAD_INPUT_7) { // [q] キー
@@ -623,9 +644,6 @@ void FrameProcess() {
 				EnemyInit(enemy, enemyRoute);
 			}
 		}
-
-
-
 #ifdef _DEBUG
 		//if (gTrg & PAD_INPUT_1) {	// [v]
 		//	AddBox(12, 9, 17, 10, player.x, player.y);
@@ -633,11 +651,12 @@ void FrameProcess() {
 
 #endif // _DEBUG
 
-
 	}
 	else {
 		// すべての敵を倒した
 		gScene = SCENE_GAME;
+
+		// ステージクリア表示の設定
 		if (gViewClearCnt == 0) {
 			// ステージクリア表示へ
 			gViewClearCnt = 120;		// 表示フレーム数
@@ -653,32 +672,27 @@ void FrameProcess() {
 				}
 			}
 		}
+		// ステージクリア表示中
 		else {
-			
-
-			
-
+			// ボスステージの場合
 			if (gStageNo == BOSS_STAGE) {
+				// 60フレームごとにエフェクトをセット
 				if (gViewClearCnt % 60 == 0) {
-					//PlaySoundMem(sound[1], DX_PLAYTYPE_BACK);
-
 					int x = 8;
 					int y = 3;
-
+					// エフェクトをセット
 					SetEffect(effect, x, y, EFFECT_TYPE_EXPLOSION_MEAT);
 					SetEffect(effect, x, y, EFFECT_TYPE_EXPLOSION_BLOOD);
-
-
-
 				}
 
+				// ボスを揺らして表示するための処理
+				// bossDraw_cx, bossDraw_cy に揺れ幅を設定
 				if (gViewClearCnt % 10 >= 4) {
-					bossDraw_cx = 20;				
+					bossDraw_cx = 20;
 				}
 				else {
 					bossDraw_cx = -20;
-				}				
-
+				}
 				if (gViewClearCnt % 10 == 0) {
 					bossDraw_cy += 2;
 				}
@@ -686,27 +700,29 @@ void FrameProcess() {
 			// 表示フレームを減らす
 			gViewClearCnt--;
 
+			// 表示フレームが0になったら
 			if (gViewClearCnt == 0) {
+				// ボスステージの場合
 				if (gStageNo == BOSS_STAGE) {
+					// ゲームクリアへ
 					gScene = SCENE_GAMECLEAR;
 
+					// BGMを停止し、ゲームクリアのBGMを再生
 					StopSoundMem(bgmHandle);
 					bgmHandle = bgm[6];
 					PlaySoundMem(bgmHandle, DX_PLAYTYPE_LOOP);
 				}
+				// ボスステージ以外
 				else {
-
-					// 減らしきったら次のステージへ
+					// 次のステージへ
 					if (gStageNo + 1 < STAGE_MAX) {
-
-
-
 						gStageNo++;
 
+						// 次のステージの初期化
 						StageInit(gStageNo);
+						// 次のステージの敵の初期化
 						EnemyInit(enemy, enemyRoute);
 					}
-
 				}
 			}
 		}
@@ -720,22 +736,10 @@ void GameDraw() {
 
 	if(gStageNo == BOSS_STAGE) {
 		//ボス
-		
-
-		//if (gViewClearCnt != 0) {
-		//	if (gViewClearCnt % 20 < 10 ) {
-		//		/*SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-		//		DrawGraph((SCREEN_W / 2) - 128 + bossDraw_cx, 3 * CHIP_H, cgBoss[(boss.animCnt / 8) % 16], TRUE);
-		//		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);*/
-		//		GraphFilter(cgBoss[(boss.animCnt / 8) % 16], DX_GRAPH_FILTER_HSB, 0, 0, 0, 255);
-		//	}
-		//}
-
-
 		DrawGraph((SCREEN_W / 2) - 128 + bossDraw_cx, 3 * CHIP_H + bossDraw_cy, cgBoss[(boss.animCnt / 8) % 16], TRUE);
 	}
 
-	// マップチップを for ループでひとつひとつ描画する
+	// マップチップの描画
 	int x, y;
 	for (y = 0; y < MAP_H; y++) {
 		for (x = 0; x < MAP_W; x++) {
@@ -757,14 +761,12 @@ void GameDraw() {
 					else {
 						DrawGraph(x * CHIP_W, y * CHIP_H, cgChipWall[chip_no - 50][0], FALSE);
 					}
-					
 				}
-				
-			}			
+			}
 		}
 	}
 
-	// 箱もforループで描画する
+	// 箱の描画
 	for (y = 0; y < MAP_H; y++) {
 		for (x = 0; x < MAP_W; x++) {
 			// box[] から、チップ番号を取り出す
@@ -777,7 +779,6 @@ void GameDraw() {
 		}
 	}
 
-
 	//敵の描画
 	int tomatoAnimTbl[] = { 0, 1, 2, 1 };
 	int namakoAnimTbl[] = { 0, 1, 2, 1 };
@@ -785,37 +786,30 @@ void GameDraw() {
 	for (int i = 0; i < ENEMY_MAX; i++) {
 		if (enemy[i].use == 1) {
 			if (enemy[i].type == ENEMY_TYPE_TOMATO) {
+				// 一定のカウント以下の場合は、待機状態の画像を表示（羽を閉じて地上にいる）
 				if (enemy[i].animCnt <= 16 * 4) {
 					DrawGraph(enemy[i].x * CHIP_W, enemy[i].y * CHIP_H - CHIP_H / 4, cgEnemy[enemy[i].type][3], TRUE);
 				}
+				// 一定のカウント以上の場合は、アニメーションを表示（羽ばたき）
 				else {
 					DrawGraph(enemy[i].x * CHIP_W, enemy[i].y * CHIP_H - CHIP_H / 4, cgEnemy[enemy[i].type][tomatoAnimTbl[(enemy[i].animCnt / enemy[i].animSpeed) % 4]], TRUE);
-
 				}
 			}
 			else {
 				DrawGraph(enemy[i].x * CHIP_W, enemy[i].y * CHIP_H - 10, cgEnemy[enemy[i].type][namakoAnimTbl[(enemy[i].animCnt / enemy[i].animSpeed) % 4]], TRUE);
 			}
-
 		}
 	}
-
-
-	
-	
-
-	
 
 	// プレイヤー
 	int animTbl[] = { 0, 1, 2, 2, 2 ,1 };
 	DrawGraph(player.x* CHIP_W, player.y* CHIP_H - CHIP_H / 4, cgPlayer[player.arrow][animTbl[(player.animCnt / player.animSpeed) % 6]], TRUE);
 
+	// ボスステージ
 	if(gStageNo == BOSS_STAGE) {
 		//触手
 		for(int i = 0; i < TENTACLE_MAX; i++) {
 			if(tentacle[i].use == 1) {
-
-
 				if(tentacle[i].direction == 1) { //左
 					if(tentacle[i].isRemain == 0) {
 						//待機
@@ -826,10 +820,6 @@ void GameDraw() {
 						DrawGraph((tentacle[i].x + 1) * CHIP_W - CHIP_W / 2, (tentacle[i].row + TENTACLE_ATTACK_ROW)* CHIP_H, cgTentacle[0][((tentacle[i].animCnt / tentacle[i].animSpeed) % 2) + 4], TRUE);
 					}
 				}
-
-
-
-
 				else { //右
 					if(tentacle[i].isRemain == 0) {
 						//待機
@@ -854,9 +844,8 @@ void GameDraw() {
 					SetDrawBlendMode(DX_BLENDMODE_ALPHA, 140);
 				}
 				DrawGraph(effect[i].x * CHIP_W, effect[i].y * CHIP_H, cgEffect[effect[i].type][effect[i].arrowDirection], TRUE);
-				
+				// 描画設定を元に戻す
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
 			}
 			// その他のエフェクト
 			else {
@@ -897,7 +886,7 @@ void GameDraw() {
 		}
 	}
 	else {
-		//∞
+		// ボスステージの場合は、∞を表示
 
 		if (gStageNo == BOSS_STAGE) {
 
@@ -915,10 +904,7 @@ void GameDraw() {
 				cgCount[8], TRUE
 			);
 		}
-
-
 	}
-
 
 	//ステージ番号表示
 	DrawGraph(0, 0, cgStageLevel, TRUE);
@@ -933,8 +919,6 @@ void GameDraw() {
 	DrawString(SCREEN_W - 250, h *(16 + line), "[Z] キーでリトライ", GetColor(255, 255, 255));			 h++;
 	DrawString(SCREEN_W - 250, h *(16 + line), "[esc] キーでゲーム終了", GetColor(255, 255, 255));	 h++;
 
-
-
 	// クリア表示
 	if(gViewClearCnt != 0) {
 		if (gStageNo != BOSS_STAGE) {
@@ -943,7 +927,6 @@ void GameDraw() {
 			}
 		}
 	}
-
 
 #ifdef _DEBUG
 
@@ -986,10 +969,8 @@ void FrameDraw() {
 
 	ClearDrawScreen();						// 画面を初期化する
 
+	// シーンごとの描画処理
 	SceneManage(gScene);
-	//DrawFormatString(0, 0, GetColor(255, 255, 255), "gScene %d", gScene);
-
-	
 
 #ifdef _DEBUG
 	draw_fps(0, 0);
