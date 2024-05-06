@@ -264,7 +264,7 @@ void SetArrowEffect() {
 				
 				}
 
-				//敵が移動できない場合は矢印を表示しない
+				// 敵が移動できない場合は矢印を半透明にする
 				if (map[y * MAP_W + x] == 1 || box[y * MAP_W + x] == 1) { 
 					alphaFrag = 1;
 					//break; 
@@ -843,10 +843,12 @@ void GameDraw() {
 		}
 	}
 
-	//エフェクト
+	// エフェクトの描画
 	for (int i = 0; i < EFFECT_MAX; i++) {
 		if (effect[i].use == 1) {
+			// 矢印エフェクトの場合
 			if (effect[i].type == EFFECT_TYPE_ARROW_RED || effect[i].type == EFFECT_TYPE_ARROW_YELLOW) {
+				// 半透明で描画する場合
 				if (alphaFrag == 1) {
 					SetDrawBlendMode(DX_BLENDMODE_ALPHA, 140);
 				}
@@ -855,8 +857,9 @@ void GameDraw() {
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 			}
+			// その他のエフェクト
 			else {
-				DrawGraph(effect[i].x * CHIP_W + effect[i].cx, effect[i].y * CHIP_H + effect[i].cy, cgEffect[effect[i].type][(effect[i].Cnt / effect[i].speed) % effect[i].sheets], TRUE);
+				DrawGraph(effect[i].x * CHIP_W + effect[i].cx, effect[i].y * CHIP_H + effect[i].cy, cgEffect[effect[i].type][(effect[i].animationCnt / effect[i].speed) % effect[i].sheets], TRUE);
 			}
 		}
 	}

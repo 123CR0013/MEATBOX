@@ -2,17 +2,20 @@
 #include "effect.h"
 #include "resource.h"
 
-
-
+// エフェクト構造体配列の初期化
 void EffectInit(Effect effect[]) {
 	for (int i = 0; i < EFFECT_MAX; i++) {
 		effect[i].use = 0;
-		effect[i].Cnt = 0;
+		effect[i].animationCnt = 0;
 		effect[i].cx = 0;
 		effect[i].cy = 0;
 	}
 }
 
+// エフェクトのセット
+// x, y: エフェクトを再生するマップチップ座標
+// type: エフェクトの種類
+// arrowDirection: 矢印エフェクトの方向（他のエフェクトでは使用しない）
 void SetEffect(Effect effect[], int x, int y, int type, int arrowDirection) {
 	for (int i = 0; i < EFFECT_MAX; i++) {
 		if (effect[i].use == 0) {
@@ -63,19 +66,19 @@ void SetEffect(Effect effect[], int x, int y, int type, int arrowDirection) {
 
 				break;
 			}
-
 			break;
 		}
 	}
 }
 
+// エフェクトのアニメーションカウントを進める処理
 void EffectProcess(Effect effect[]) {
 	for (int i = 0; i < EFFECT_MAX; i++) {
 		if (effect[i].use == 1) {
-			effect[i].Cnt++;
+			effect[i].animationCnt++;
 			if (effect[i].type != EFFECT_TYPE_ARROW_RED && effect[i].type != EFFECT_TYPE_ARROW_YELLOW) {
-				if (effect[i].Cnt > effect[i].speed * effect[i].sheets - 1) {
-					effect[i].Cnt = 0;
+				if (effect[i].animationCnt > effect[i].speed * effect[i].sheets - 1) {
+					effect[i].animationCnt = 0;
 					effect[i].use = 0;
 				}
 			}
