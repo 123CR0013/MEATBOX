@@ -218,14 +218,14 @@ void AddBox(int left, int top, int right, int bottom, int playerX, int playerY) 
 		ry = (rand() % (bottom - top + 1)) + top;
 
 		// ランダムに決定した座標に既にミートボックスがない、かつ、プレイヤーの座標でない場合にループを抜ける
-		if (box[ry * MAP_W + rx] != 1) {
+		if (boxMap[ry * MAP_W + rx] != 1) {
 			if (playerX != rx || playerY != ry) {
 				break;
 			}
 		}
 	}
 	// box[] にミートボックスを追加
-	box[ry * MAP_W + rx] = 1;
+	boxMap[ry * MAP_W + rx] = 1;
 
 	// エフェクトをセット
 	SetEffect(effect, rx, ry, EFFECT_TYPE_IMPACT);
@@ -266,7 +266,7 @@ void SetArrowEffect() {
 				}
 
 				// 敵が移動できない場合は矢印を半透明にする
-				if (map[y * MAP_W + x] == 1 || box[y * MAP_W + x] == 1) { 
+				if (map[y * MAP_W + x] == 1 || boxMap[y * MAP_W + x] == 1) { 
 					alphaFrag = 1;
 					//break; 
 				
@@ -394,7 +394,7 @@ void PlayerMove() {
 	}
 
 	// 移動した先に箱はあるか？
-	if (box[player.y * MAP_W + player.x] == 1)
+	if (boxMap[player.y * MAP_W + player.x] == 1)
 	{
 		// 移動した先に箱があった。
 		// 押せるかどうか調べたい
@@ -413,7 +413,7 @@ void PlayerMove() {
 		}
 
 		// その先に、箱があるかを調べる
-		if (box[next_y * MAP_W + next_x] == 1)
+		if (boxMap[next_y * MAP_W + next_x] == 1)
 		{
 			// 箱があるので押せない
 			push_ok = 0;
@@ -424,7 +424,7 @@ void PlayerMove() {
 
 		//押しつぶし
 		if (enemyMap[next_y * MAP_W + next_x] != 0) {
-			if (map[(next_y + move_y) * MAP_W + (next_x + move_x)] >= 50 || box[(next_y + move_y) * MAP_W + (next_x + move_x)] == 1 || map[(next_y + move_y) * MAP_W + (next_x + move_x)] == -1) {
+			if (map[(next_y + move_y) * MAP_W + (next_x + move_x)] >= 50 || boxMap[(next_y + move_y) * MAP_W + (next_x + move_x)] == 1 || map[(next_y + move_y) * MAP_W + (next_x + move_x)] == -1) {
 				push_ok = 1;
 				crush_ok = 1;
 			}
@@ -440,10 +440,10 @@ void PlayerMove() {
 		{
 			// 押せる。箱の位置を移動する
 			// まず、プレイヤーが乗った箱を消し、
-			box[player.y * MAP_W + player.x] = 0;
+			boxMap[player.y * MAP_W + player.x] = 0;
 
 			// 移動先に箱を書き込む
-			box[next_y * MAP_W + next_x] = 1;
+			boxMap[next_y * MAP_W + next_x] = 1;
 
 			SetEffect(effect, next_x, next_y, EFFECT_TYPE_IMPACT);
 			PlaySoundMem(sound[2], DX_PLAYTYPE_BACK);
@@ -547,7 +547,7 @@ void FrameProcess() {
 				for (y = 0; y < MAP_H; y++) {
 					for (x = 0; x < MAP_W; x++) {
 						// box[] から、チップ番号を取り出す
-						int chip_no = box[y * MAP_W + x];
+						int chip_no = boxMap[y * MAP_W + x];
 						if (chip_no != 0)
 						{
 							n++;
@@ -768,7 +768,7 @@ void GameDraw() {
 	for (y = 0; y < MAP_H; y++) {
 		for (x = 0; x < MAP_W; x++) {
 			// box[] から、チップ番号を取り出す
-			int chip_no = box[y * MAP_W + x];
+			int chip_no = boxMap[y * MAP_W + x];
 			if (chip_no != 0)
 			{
 				int animTbl[] = { 0, 1, 2, 2, 2, 1, 0};

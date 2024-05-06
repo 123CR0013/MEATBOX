@@ -128,7 +128,7 @@ void BossAttack(Tentacle tentacle[]) {
 			// UŒ‚ˆ—
 			for (int j = 1; j <= tentacle[i].range; j++) {
 				// UŒ‚”ÍˆÍ“à‚Ì” ‚ğ‰ó‚·
-				box[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 0;
+				boxMap[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 0;
 				// UŒ‚”ÍˆÍ“à‚É“G‚ª‚¢‚é”»’è‚ğ‚Â‚¯‚é
 				enemyMap[(tentacle[i].row + TENTACLE_ATTACK_ROW) * MAP_W + tentacle[i].x + (tentacle[i].direction * j)] = 9;
 			}

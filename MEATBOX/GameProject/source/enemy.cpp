@@ -87,7 +87,7 @@ void EnemyMove(Enemy enemy[], EnemyRoute enemyRoute[][ROUTE_MAX]) {
 			}
 
 			// ˆÚ“®‚µ‚½æ‚É•Ç‚©” ‚È‚¯‚ê‚Î
-			if (map[y * MAP_W + x] != 1 && box[y * MAP_W + x] != 1)
+			if (map[y * MAP_W + x] != 1 && boxMap[y * MAP_W + x] != 1)
 			{
 				// ˆÚ“®‰Â”\‚È‚ç‰¼‚Å“ü‚ê‚½‚à‚Ì‚ğ”½‰f‚·‚é
 				enemy[i].moveCnt = n;

@@ -3,13 +3,15 @@
 #include "map.h"
 
 
-// マップデータ
+// マップチップの配置データ
 int map[MAP_W * MAP_H];
-int box[MAP_W * MAP_H];
+// ミートボックスの配置データ
+int boxMap[MAP_W * MAP_H];
+// 敵の配置データ
 int enemyMap[MAP_W * MAP_H];
 
 
-// ステージデータ(mapとboxとplayer位置を混ぜたもの)
+// ステージデータ(マップチップ、ミートボックス、オブジェクトの配置位置)
 
 // 下2桁がマップチップの番号を表す
 // 0~49:床, 50~99:壁, -1:黒い背景（画像なし）
@@ -214,27 +216,28 @@ int stage[STAGE_MAX][MAP_W * MAP_H] = {
 	},
 };
 
+// マップデータの初期化処理
 void MapInit(int stageNo, int* playerX, int * playerY) {
-	// stage[stageNo]から、map[], box[], player座標を生成する
+	// stage[stageNo]から、map[], boxMap[], enemyMap[], player座標を生成する
 	int x, y;
 	for (y = 0; y < MAP_H; y++) {
 		for (x = 0; x < MAP_W; x++) {
-			enemyMap[y * MAP_W + x] = 0;	// enemy[]の初期化
-			box[y * MAP_W + x] = 0;			// box[]の初期化
+			enemyMap[y * MAP_W + x] = 0;	// enemyMap[]の初期化
+			boxMap[y * MAP_W + x] = 0;			// boxMap[]の初期化
 
 			// stage[stageNo][] から、チップ番号を取り出す
 			int chip_no = stage[stageNo][y * MAP_W + x];
 
 			if (chip_no == -1) { map[y * MAP_W + x] = -1; continue; } // -1のところには何も表示しない
 
-			if (chip_no >= 400) {			// enemy[]の書き込み
+			if (chip_no >= 400) {			// enemyMap[]の書き込み
 				enemyMap[y * MAP_W + x] = 4;
 			}
-			else if (chip_no >= 300) {		// enemy[]の書き込み
+			else if (chip_no >= 300) {		// enemyMap[]の書き込み
 				enemyMap[y * MAP_W + x] = 3;
 			}
 			else if (chip_no >= 200) {
-				box[y * MAP_W + x] = 1;		// box[]の書き込み
+				boxMap[y * MAP_W + x] = 1;		// boxMap[]の書き込み
 			}
 			else if (chip_no >= 100) {
 				// ここにプレイヤー座標を設定
@@ -245,9 +248,6 @@ void MapInit(int stageNo, int* playerX, int * playerY) {
 			// map[]の書き込み
 			int n = chip_no % 100;
 			map[y * MAP_W + x] = n;
-
 		}
 	}
-
-
 }
